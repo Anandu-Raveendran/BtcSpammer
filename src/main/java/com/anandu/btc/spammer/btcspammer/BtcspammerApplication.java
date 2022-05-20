@@ -44,12 +44,12 @@ public class BtcspammerApplication {
 
             confidence = getConfidence(price, old1, old2, old3);
 
-            System.out.println(
-                    writeToFile(filename,          // write to file
-                            old3 + ", " + old2 + ", " + old1 + ", " +
-                                    price + ", " +
-                                    confidence + ", " +
-                                    timestamp));
+//            System.out.println(
+//                    writeToFile(filename,          // write to file
+//                            old3 + ", " + old2 + ", " + old1 + ", " +
+//                                    price + ", " +
+//                                    confidence + ", " +
+//                                    timestamp));
 
             if (startTrading) { // if it is ok to trade
                 if (confidence > 30) { // if confidence is good
