@@ -57,13 +57,13 @@ public class BtcspammerApplication {
                 if (confidence > 30) { // if confidence is good
                     if (accountBalance > 0) {// and if there is still cash in account
                         accountBalance -= buyFor(accountBalance); // reduce account balance with the bought amount
-                        writeToFile(tradingReportfilename, String.valueOf(price));
+                        writeToFile(tradingReportfilename, "Buying, " + String.valueOf(price));
                     }
                 }
                 if (confidence < 30) {
                     if (accountBalance < 1000) { //TODO:change this according to API. sell only if anything is there to sell
                         accountBalance += sellFor(accountBalance);
-                        writeToFile(tradingReportfilename, "-" + price);
+                        writeToFile(tradingReportfilename, "selling, -" + price);
                     }
                 }
             }
