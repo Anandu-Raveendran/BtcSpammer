@@ -14,18 +14,17 @@ public class BtcRunner extends Thread {
     String filename = "priceList.txt";
     String tradingReportfilename = "tradeReport.txt";
 
-    float price = 0F, old1 = 0F, old2 = 0F, old3 = 0F;
+    double old1 = 0F, old2 = 0F, old3 = 0F;
     int confidence;
     boolean startTrading = false; // change to true when ready to buy and sell
-    float accountBalance = 1000;
 
     public void run() {
 
         while (true) {
-            if (Float.compare(price, old1) != 0) { // there is change in price
+            if (Double.compare(BTCManagerSingleton.getInstance().currentPrice, old1) != 0) { // there is change in price
                 old3 = old2; // replace old values one step
                 old2 = old1;
-                old1 = price;
+                old1 = BTCManagerSingleton.getInstance().currentPrice;
                 if (old3 > 0 && !startTrading) {
                     startTrading = true;
                     System.out.println("Trading is enabled as old3 is filled");
@@ -33,18 +32,18 @@ public class BtcRunner extends Thread {
             }
 
             sleepFor(1);
-            price = getPrice();
-            if (price == -1) { // error getting price. then try again
+            BTCManagerSingleton.getInstance().currentPrice = getPrice();
+            if (BTCManagerSingleton.getInstance().currentPrice == -1) { // error getting price. then try again
                 continue;
             }
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 
-            confidence = getConfidence(price, old1, old2, old3);
+            confidence = getConfidence(BTCManagerSingleton.getInstance().currentPrice, old1, old2, old3);
 
             System.out.println(
                     writeToFile(filename,          // write to file
                             old3 + ", " + old2 + ", " + old1 + ", " +
-                                    price + ", " +
+                                    BTCManagerSingleton.getInstance().currentPrice + ", " +
                                     confidence + ", " +
                                     timestamp)
             )
@@ -52,15 +51,19 @@ public class BtcRunner extends Thread {
 
             if (startTrading) { // if it is ok to trade
                 if (confidence > 30) { // if confidence is good
-                    if (accountBalance > 0) {// and if there is still cash in account
-                        accountBalance -= buyFor(accountBalance); // reduce account balance with the bought amount
-                        writeToFile(tradingReportfilename, "Buying, " + String.valueOf(price));
+                    if (BTCManagerSingleton.getInstance().accountBalance > 0) {// and if there is still cash in account
+                        double boughtFor = buyFor(BTCManagerSingleton.getInstance().accountBalance);
+                        BTCManagerSingleton.getInstance().accountBalance -= boughtFor;// reduce account balance with the bought amount
+                        BTCManagerSingleton.getInstance().numberOfCoins += boughtFor / BTCManagerSingleton.getInstance().currentPrice;
+                        writeToFile(tradingReportfilename, "Buying, " + String.valueOf(BTCManagerSingleton.getInstance().currentPrice));
                     }
                 }
                 if (confidence < 30) {
-                    if (accountBalance < 1000) { //TODO:change this according to API. sell only if anything is there to sell
-                        accountBalance += sellFor(accountBalance);
-                        writeToFile(tradingReportfilename, "selling, -" + price);
+                    if (BTCManagerSingleton.getInstance().numberOfCoins > 0) { //TODO:change this according to API. sell only if anything is there to sell
+                        double soldfor = sellFor(BTCManagerSingleton.getInstance().numberOfCoins * BTCManagerSingleton.getInstance().currentPrice);
+                        BTCManagerSingleton.getInstance().accountBalance += soldfor;
+                        BTCManagerSingleton.getInstance().numberOfCoins = 0;
+                        writeToFile(tradingReportfilename, "selling, -" + BTCManagerSingleton.getInstance().currentPrice);
                     }
                 }
             }
@@ -68,7 +71,7 @@ public class BtcRunner extends Thread {
     }
 
     //Returns -1 on error else returns the cost in string
-    public float getPrice() {
+    public double getPrice() {
 
         RestTemplate restTemplate = new RestTemplate();
         String url = "https://api.coinbase.com/v2/prices/spot?currency=USD";
@@ -89,7 +92,7 @@ public class BtcRunner extends Thread {
 
     //get confidence of going up and down. positive confidence for up and negative for down
     //confidence is from -100(will sure go down) to 100(will sure go up)
-    public int getConfidence(Float current, Float old1, Float old2, Float old3) {
+    public int getConfidence(double current, double old1, double old2, double old3) {
         int confidence = 0;
 
         if (current > old1) {
@@ -117,13 +120,13 @@ public class BtcRunner extends Thread {
 
 
     //Buy
-    public float buyFor(float amount) {
+    public double buyFor(double amount) {
         System.out.println("buying for amount " + amount);
         return amount;
     }
 
     //Sell
-    public float sellFor(float amount) {
+    public double sellFor(double amount) {
         System.out.println("selling for amount " + amount);
         return amount;
     }

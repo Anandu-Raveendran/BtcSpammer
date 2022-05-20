@@ -16,8 +16,10 @@ public class BtcspammerApplication {
 
         SpringApplication.run(BtcspammerApplication.class, args);
 
-//        BtcRunner btcRunner = new BtcRunner();
-//        btcRunner.start();
+        BTCManagerSingleton.getInstance().accountBalance = 1000;
+
+        BtcRunner btcRunner = new BtcRunner();
+        btcRunner.start();
 
     }
 
