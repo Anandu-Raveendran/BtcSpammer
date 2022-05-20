@@ -42,12 +42,17 @@ public class BtcRunner extends Thread {
 
             System.out.println(
                     writeToFile(filename,          // write to file
-                            old3 + ", " + old2 + ", " + old1 + ", " +
-                                    BTCManagerSingleton.getInstance().currentPrice + ", " +
+                            BTCManagerSingleton.getInstance().currentPrice + ", " +
                                     confidence + ", " +
                                     timestamp)
             )
             ;
+
+            System.out.println(
+                    writeToFile("portfolio,txt", String.format("Current price: %f <br/>number of coins: %f <br/>Account Balance: %f <br/> portfolio: %f",
+                            BTCManagerSingleton.getInstance().currentPrice, BTCManagerSingleton.getInstance().numberOfCoins, BTCManagerSingleton.getInstance().accountBalance,
+                            BTCManagerSingleton.getInstance().currentPrice * BTCManagerSingleton.getInstance().numberOfCoins + BTCManagerSingleton.getInstance().accountBalance)));
+
 
             if (startTrading) { // if it is ok to trade
                 if (confidence > 30) { // if confidence is good
