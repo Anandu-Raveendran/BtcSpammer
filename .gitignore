@@ -121,5 +121,5 @@ maven-wrapper.properties
 mvnw
 mvnw.cmd
 
-priceList.txt
+priceList.csv
 tradeReport.txt

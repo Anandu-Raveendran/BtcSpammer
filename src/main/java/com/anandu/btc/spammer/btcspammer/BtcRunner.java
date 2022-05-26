@@ -1,18 +1,19 @@
 package com.anandu.btc.spammer.btcspammer;
 
+import DTO.BtcPrice;
+import com.google.gson.Gson;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.sql.Timestamp;
 
+import static com.anandu.btc.spammer.btcspammer.Constants.*;
 import static com.anandu.btc.spammer.btcspammer.Utils.sleepFor;
 import static com.anandu.btc.spammer.btcspammer.Utils.writeToFile;
 
 public class BtcRunner extends Thread {
 
-    String filename = "priceList.txt";
-    String tradingReportfilename = "tradeReport.txt";
 
     double old1 = 0F, old2 = 0F, old3 = 0F;
     int confidence;
@@ -37,30 +38,29 @@ public class BtcRunner extends Thread {
                 continue;
             }
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-
             confidence = getConfidence(BTCManagerSingleton.getInstance().currentPrice, old1, old2, old3);
 
+            BtcPrice btcPrice = new BtcPrice(BTCManagerSingleton.getInstance().currentPrice, confidence, timestamp);
+            Gson gson = new Gson();
             System.out.println(
-                    writeToFile(filename,          // write to file
-                            BTCManagerSingleton.getInstance().currentPrice + ", " +
-                                    confidence + ", " +
-                                    timestamp)
+                    writeToFile(priceList, gson.toJson(btcPrice)
+                    )
             )
             ;
 
-            System.out.println(
-                    writeToFile("portfolio,txt", String.format("Current price: %f <br/>number of coins: %f <br/>Account Balance: %f <br/> portfolio: %f",
-                            BTCManagerSingleton.getInstance().currentPrice, BTCManagerSingleton.getInstance().numberOfCoins, BTCManagerSingleton.getInstance().accountBalance,
-                            BTCManagerSingleton.getInstance().currentPrice * BTCManagerSingleton.getInstance().numberOfCoins + BTCManagerSingleton.getInstance().accountBalance)));
+//            System.out.println(
+//                    writeToFile("portfolio,txt", String.format("Current price: %f <br/>number of coins: %f <br/>Account Balance: %f <br/> portfolio: %f",
+//                            BTCManagerSingleton.getInstance().currentPrice, BTCManagerSingleton.getInstance().numberOfCoins, BTCManagerSingleton.getInstance().accountBalance,
+//                            BTCManagerSingleton.getInstance().currentPrice * BTCManagerSingleton.getInstance().numberOfCoins + BTCManagerSingleton.getInstance().accountBalance)));
 
 
             if (startTrading) { // if it is ok to trade
-                if (confidence > 30) { // if confidence is good
+                if (confidence > 0) { // if confidence is good
                     if (BTCManagerSingleton.getInstance().accountBalance > 0) {// and if there is still cash in account
                         double boughtFor = buyFor(BTCManagerSingleton.getInstance().accountBalance);
                         BTCManagerSingleton.getInstance().accountBalance -= boughtFor;// reduce account balance with the bought amount
                         BTCManagerSingleton.getInstance().numberOfCoins += boughtFor / BTCManagerSingleton.getInstance().currentPrice;
-                        writeToFile(tradingReportfilename, "Buying, " + String.valueOf(BTCManagerSingleton.getInstance().currentPrice));
+                        System.out.println(writeToFile(tradingReportFilename, "Buying, " + BTCManagerSingleton.getInstance().currentPrice + ", " + timestamp));
                     }
                 }
                 if (confidence < 0) {
@@ -68,7 +68,7 @@ public class BtcRunner extends Thread {
                         double soldfor = sellFor(BTCManagerSingleton.getInstance().numberOfCoins * BTCManagerSingleton.getInstance().currentPrice);
                         BTCManagerSingleton.getInstance().accountBalance += soldfor;
                         BTCManagerSingleton.getInstance().numberOfCoins = 0;
-                        writeToFile(tradingReportfilename, "selling, -" + BTCManagerSingleton.getInstance().currentPrice);
+                        System.out.println(writeToFile(tradingReportFilename, "selling, " + BTCManagerSingleton.getInstance().currentPrice + ", " + timestamp));
                     }
                 }
             }

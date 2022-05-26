@@ -20,7 +20,7 @@ public class BtcspammerApplication {
 
         BtcRunner btcRunner = new BtcRunner();
         btcRunner.start();
-
+        System.gc();
     }
 
 
