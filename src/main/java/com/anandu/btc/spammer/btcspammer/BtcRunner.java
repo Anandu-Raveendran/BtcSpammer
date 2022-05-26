@@ -63,7 +63,7 @@ public class BtcRunner extends Thread {
                         writeToFile(tradingReportfilename, "Buying, " + String.valueOf(BTCManagerSingleton.getInstance().currentPrice));
                     }
                 }
-                if (confidence < 30) {
+                if (confidence < 0) {
                     if (BTCManagerSingleton.getInstance().numberOfCoins > 0) { //TODO:change this according to API. sell only if anything is there to sell
                         double soldfor = sellFor(BTCManagerSingleton.getInstance().numberOfCoins * BTCManagerSingleton.getInstance().currentPrice);
                         BTCManagerSingleton.getInstance().accountBalance += soldfor;
