@@ -6,14 +6,22 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
     <title>JSON Test</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
 </head>
 <body>
 <div>
-    <p id="info_text"></p>
+    <p id="info_text">yo</p>
+    <div id="curve_chart"></div>
+
 </div>
+
 <script>
- function httpGet(theUrl)
+var domain = "http://localhost:8080/"
+charData = [];
+
+
+function httpGet(theUrl)
 {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
@@ -21,39 +29,52 @@
     return xmlHttp.responseText;
 }
 
-document.getElementById("info_text").innerHTML = httpGet("https://anandubtc.herokuapp.com/price")
+
+
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('date','Time');
+        data.addColumn('number','Price');
+        data.addColumn({type:'string', role:'annotation'});
+        data.addColumn({type:'string', role:'annotationText'});
+        data.addColumn({type:'string', role:'tooltip'});
+        data.addRows(charData);
+
+
+        var options = {
+          title: 'Company Performance',
+          curveType: 'function',
+          legend: { position: 'bottom' }
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+        chart.draw(data, options);
+      }
+
+      const btcPrice = JSON.parse(httpGet(domain + "btcprice"))
+      btcPrice.forEach(convertToChartData)
+      function convertToChartData(item){
+      charData.push(
+      [
+        new Date(item.time),
+        item.price,
+        item.soldStatus,
+        item.soldStatus+" $"+item.price+", Confidence: "+item.confidence,
+        "$" + item.price + " , Confidence: " + item.confidence + "\n " + new Date(item.time)
+      ]
+      )}
+
+      console.log(btcPrice);
+
+
+
+      document.getElementById("info_text").innerHTML = httpGet(domain + "price")
+
 
 
 </script>
-
-<canvas id="myChart" style="width:100%;max-width:600px"></canvas>
-
-<script>
-var xValues = [100,200,300,400,500,600,700,800,900,1000];
-
-new Chart("myChart", {
-  type: "line",
-  data: {
-    labels: xValues,
-    datasets: [{
-      data: [860,1140,1060,1060,1070,1110,1330,2210,7830,2478],
-      borderColor: "red",
-      fill: false
-    }, {
-      data: [1600,1700,1700,1900,2000,2700,4000,5000,6000,7000],
-      borderColor: "green",
-      fill: false
-    }, {
-      data: [300,700,2000,5000,6000,4000,2000,1000,200,100],
-      borderColor: "blue",
-      fill: false
-    }]
-  },
-  options: {
-    legend: {display: false}
-  }
-});
-</script>
-
 </body>
 </html>

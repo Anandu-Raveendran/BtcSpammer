@@ -1,36 +1,20 @@
 package com.anandu.btc.spammer.btcspammer.controller;
 
+import DTO.BtcPrice;
 import com.anandu.btc.spammer.btcspammer.BTCManagerSingleton;
+import com.google.gson.Gson;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.ArrayList;
 
 import static com.anandu.btc.spammer.btcspammer.Constants.*;
 
 @RestController
 public class GetDataController {
 
-    private FileInputStream fstream;
-    private BufferedReader br;
-
-    public GetDataController() {
-        super();
-        {
-            try {
-                fstream = new FileInputStream(priceList);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-
-
-        {
-            br = new BufferedReader(new InputStreamReader(fstream));
-        }
-
-    }
 
     @GetMapping("/price")
     String getPrice() {
@@ -41,7 +25,7 @@ public class GetDataController {
 
     @GetMapping("/")
     public void method(HttpServletResponse httpServletResponse) {
-        httpServletResponse.setHeader("Location", "https://anandu-raveendran.github.io/react-pranker/");
+        httpServletResponse.setHeader("Location", prankerLocation);
         httpServletResponse.setStatus(302);
     }
 
@@ -49,26 +33,28 @@ public class GetDataController {
     public String getBtcPrice() {
 
         String strLine = "";
-
+        ArrayList<BtcPrice> list = new ArrayList<>();
+        int noOfLines = 100;
+        Gson gson = new Gson();
         //Read File Line By Line
-        while (true) {
-            try {
-                if (!((strLine = br.readLine()) != null)) break;
-            } catch (IOException e) {
-                e.printStackTrace();
+
+        try {
+            FileInputStream fstream = new FileInputStream(priceList);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+
+            while (true) {
+                if (!((strLine = br.readLine()) != null))
+                    break;
+                list.add(gson.fromJson(strLine, BtcPrice.class));
             }
-            // Print the content on the console
-            System.out.println(strLine);
+            fstream.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-
-        //Close the input stream
-        return tokens[1];
+        return gson.toJson(list.subList(((list.size() - noOfLines) < 0) ? 0 : (list.size() - noOfLines), list.size()));
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        fstream.close();
-    }
 }

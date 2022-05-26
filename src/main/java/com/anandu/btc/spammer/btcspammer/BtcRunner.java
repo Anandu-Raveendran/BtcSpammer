@@ -17,11 +17,13 @@ public class BtcRunner extends Thread {
 
     double old1 = 0F, old2 = 0F, old3 = 0F;
     int confidence;
+    int fileLineCount = 0;
     boolean startTrading = false; // change to true when ready to buy and sell
 
     public void run() {
 
         while (true) {
+            String saleStatus = null;
             if (Double.compare(BTCManagerSingleton.getInstance().currentPrice, old1) != 0) { // there is change in price
                 old3 = old2; // replace old values one step
                 old2 = old1;
@@ -37,22 +39,14 @@ public class BtcRunner extends Thread {
             if (BTCManagerSingleton.getInstance().currentPrice == -1) { // error getting price. then try again
                 continue;
             }
-            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
             confidence = getConfidence(BTCManagerSingleton.getInstance().currentPrice, old1, old2, old3);
-
-            BtcPrice btcPrice = new BtcPrice(BTCManagerSingleton.getInstance().currentPrice, confidence, timestamp);
-            Gson gson = new Gson();
-            System.out.println(
-                    writeToFile(priceList, gson.toJson(btcPrice)
-                    )
-            )
-            ;
 
 //            System.out.println(
 //                    writeToFile("portfolio,txt", String.format("Current price: %f <br/>number of coins: %f <br/>Account Balance: %f <br/> portfolio: %f",
 //                            BTCManagerSingleton.getInstance().currentPrice, BTCManagerSingleton.getInstance().numberOfCoins, BTCManagerSingleton.getInstance().accountBalance,
 //                            BTCManagerSingleton.getInstance().currentPrice * BTCManagerSingleton.getInstance().numberOfCoins + BTCManagerSingleton.getInstance().accountBalance)));
 
+            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 
             if (startTrading) { // if it is ok to trade
                 if (confidence > 0) { // if confidence is good
@@ -60,7 +54,7 @@ public class BtcRunner extends Thread {
                         double boughtFor = buyFor(BTCManagerSingleton.getInstance().accountBalance);
                         BTCManagerSingleton.getInstance().accountBalance -= boughtFor;// reduce account balance with the bought amount
                         BTCManagerSingleton.getInstance().numberOfCoins += boughtFor / BTCManagerSingleton.getInstance().currentPrice;
-                        System.out.println(writeToFile(tradingReportFilename, "Buying, " + BTCManagerSingleton.getInstance().currentPrice + ", " + timestamp));
+                        saleStatus = "Bought";
                     }
                 }
                 if (confidence < 0) {
@@ -68,10 +62,16 @@ public class BtcRunner extends Thread {
                         double soldfor = sellFor(BTCManagerSingleton.getInstance().numberOfCoins * BTCManagerSingleton.getInstance().currentPrice);
                         BTCManagerSingleton.getInstance().accountBalance += soldfor;
                         BTCManagerSingleton.getInstance().numberOfCoins = 0;
-                        System.out.println(writeToFile(tradingReportFilename, "selling, " + BTCManagerSingleton.getInstance().currentPrice + ", " + timestamp));
+                        saleStatus = "Sold";
                     }
                 }
             }
+            BtcPrice btcPrice = new BtcPrice(BTCManagerSingleton.getInstance().currentPrice, confidence, timestamp, saleStatus);
+            Gson gson = new Gson();
+
+            System.out.println(writeToFile(priceList, gson.toJson(btcPrice)));
+            fileLineCount++;
+
         }
     }
 
