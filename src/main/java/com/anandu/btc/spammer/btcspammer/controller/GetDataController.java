@@ -34,7 +34,7 @@ public class GetDataController {
 
         String strLine = "";
         ArrayList<BtcPrice> list = new ArrayList<>();
-        int noOfLines = 100;
+        int noOfLines = 1000;
         Gson gson = new Gson();
         //Read File Line By Line
 
