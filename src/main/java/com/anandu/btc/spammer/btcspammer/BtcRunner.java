@@ -34,7 +34,7 @@ public class BtcRunner extends Thread {
                 }
             }
 
-            sleepFor(1);
+            sleepFor(500 );
             BTCManagerSingleton.getInstance().currentPrice = getPrice();
             if (BTCManagerSingleton.getInstance().currentPrice == -1) { // error getting price. then try again
                 continue;

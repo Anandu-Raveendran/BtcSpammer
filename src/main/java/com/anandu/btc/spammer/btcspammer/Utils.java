@@ -28,10 +28,10 @@ public final class Utils {
     }
 
 
-    public static void sleepFor(int seconds) {
+    public static void sleepFor(long milliseconds) {
         try {
-            TimeUnit.SECONDS.sleep(seconds);
-//            System.out.println("Sleeping for " + seconds + " second(s)");
+            TimeUnit.MILLISECONDS.sleep(milliseconds);
+//            System.out.println("Sleeping for " + milliseconds + " second(s)");
         } catch (InterruptedException e) {
             System.out.println("Error sleeping " + e.getMessage());
             e.printStackTrace();
