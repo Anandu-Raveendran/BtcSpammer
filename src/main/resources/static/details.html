@@ -18,12 +18,15 @@
 
 <script>
 <!--var domain = "http://localhost:8080/"-->
-var domain = "https://anandubtc.herokuapp.com/"
+<!--var domain = "https://anandubtc.herokuapp.com/"-->
+var domain = document.location.origin+"/"
+
 charData = [];
 
 
 function httpGet(theUrl)
 {
+    console.log("fetching "+theUrl);
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
     xmlHttp.send( null );

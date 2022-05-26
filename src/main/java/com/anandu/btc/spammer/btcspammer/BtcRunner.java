@@ -16,7 +16,7 @@ public class BtcRunner extends Thread {
 
 
     double old1 = 0F, old2 = 0F, old3 = 0F;
-    int confidence;
+    int confidence = 0, oldConfidence = 0;
     int fileLineCount = 0;
     boolean startTrading = false; // change to true when ready to buy and sell
 
@@ -103,23 +103,24 @@ public class BtcRunner extends Thread {
         if (current > old1) {
             confidence += 30;
         }
-        if (old1 > old2) {
+       /* if (old1 > old2) {
             confidence += 30;
         }
         if (old2 > old3) {
             confidence += 30;
         }
-
+*/
         if (current < old1) {
             confidence -= 30;
         }
-        if (old1 < old2) {
+  /*      if (old1 < old2) {
             confidence -= 30;
         }
         if (old2 < old3) {
             confidence -= 30;
         }
-
+*/
+        oldConfidence = confidence;
         return confidence;
     }
 
