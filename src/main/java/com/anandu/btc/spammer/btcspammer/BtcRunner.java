@@ -17,6 +17,7 @@ public class BtcRunner extends Thread {
 
     double old1 = 0F, old2 = 0F, old3 = 0F;
     int confidence = 0, oldConfidence = 0;
+    double boughtAt = 0, topValueYet = 0;
     int fileLineCount = 0;
     boolean startTrading = false; // change to true when ready to buy and sell
 
@@ -34,7 +35,7 @@ public class BtcRunner extends Thread {
                 }
             }
 
-            sleepFor(500 );
+            sleepFor(1000);
             BTCManagerSingleton.getInstance().currentPrice = getPrice();
             if (BTCManagerSingleton.getInstance().currentPrice == -1) { // error getting price. then try again
                 continue;
@@ -100,26 +101,28 @@ public class BtcRunner extends Thread {
     public int getConfidence(double current, double old1, double old2, double old3) {
         int confidence = 0;
 
-        if (current > old1) {
-            confidence += 30;
+
+        if (old3 > old2 && old2 >= old1 && old1 < current) // dip and increase
+            confidence = 30;
+        else if (old3 > old2 && old2 < old1 && old1 < current) // dip and increase
+            confidence = 60;
+        else if (old3 < old2 && old2 < old1 && old1 < current) // steady increase
+            confidence = 90;
+
+
+        if (boughtAt > 0) { // if bought
+            if (current > topValueYet)
+                topValueYet = current;
+        } else { // if sold
+            topValueYet = 0;
         }
-       /* if (old1 > old2) {
-            confidence += 30;
+
+        double threshold = topValueYet - lossLimit;
+
+        if(current < threshold){
+            confidence = - 90; // sell if it crosses loss limit
         }
-        if (old2 > old3) {
-            confidence += 30;
-        }
-*/
-        if (current < old1) {
-            confidence -= 30;
-        }
-  /*      if (old1 < old2) {
-            confidence -= 30;
-        }
-        if (old2 < old3) {
-            confidence -= 30;
-        }
-*/
+
         oldConfidence = confidence;
         return confidence;
     }
@@ -128,12 +131,17 @@ public class BtcRunner extends Thread {
     //Buy
     public double buyFor(double amount) {
         System.out.println("buying for amount " + amount);
+        boughtAt = amount;
+        topValueYet = amount;
         return amount;
     }
 
     //Sell
     public double sellFor(double amount) {
         System.out.println("selling for amount " + amount);
+        boughtAt = 0; //reset
+        topValueYet = 0;
+
         return amount;
     }
 

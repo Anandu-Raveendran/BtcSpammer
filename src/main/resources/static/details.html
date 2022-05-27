@@ -12,7 +12,7 @@
 <body>
 <div>
     <p id="info_text">yo</p>
-    <div id="curve_chart"></div>
+    <div id="curve_chart"   ></div>
 
 </div>
 
@@ -33,24 +33,20 @@ function httpGet(theUrl)
     return xmlHttp.responseText;
 }
 
-
-
       google.charts.load('current', {'packages':['corechart']});
       google.charts.setOnLoadCallback(drawChart);
 
       function drawChart() {
         var data = new google.visualization.DataTable();
-        data.addColumn('date','Time');
+        data.addColumn('number','Time');
         data.addColumn('number','Price');
         data.addColumn({type:'string', role:'annotation'});
         data.addColumn({type:'string', role:'annotationText'});
         data.addColumn({type:'string', role:'tooltip'});
         data.addRows(charData);
 
-
         var options = {
           title: 'Company Performance',
-          curveType: 'function',
           legend: { position: 'bottom' }
         };
 
@@ -59,11 +55,12 @@ function httpGet(theUrl)
       }
 
       const btcPrice = JSON.parse(httpGet(domain + "btcprice"))
+      var index = 0;
       btcPrice.forEach(convertToChartData)
       function convertToChartData(item){
       charData.push(
       [
-        new Date(item.time),
+        ++index,
         item.price,
         item.soldStatus,
         item.soldStatus+" $"+item.price+", Confidence: "+item.confidence,
