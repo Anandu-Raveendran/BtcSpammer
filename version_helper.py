@@ -1,7 +1,13 @@
 import os
 from datetime import datetime
 
-def get_local_repo_version(fname = ""):    
+def run_in_all_dir():
+    
+    for filename in os.listdir("."):
+        print(filename)
+        get_local_repo_version("",filename)
+
+def get_local_repo_version(fname = "", path = "."):    
 
     if fname:
         out_file_name = fname
@@ -10,6 +16,7 @@ def get_local_repo_version(fname = ""):
         out_file_name = dateTimeObj.strftime("%Y_%m_%d_%H_%M")
         out_file_name += "_test_software_version.txt"
 
+    os.chdir(path)
     cmd = 'echo std_out:  > '+out_file_name
     os.system(cmd)
 
