@@ -3,10 +3,10 @@ from datetime import datetime
 
 def run_in_all_dir():
     
-    for filename in os.listdir("."):
-        print(filename)
-        if os.path.isdir(filename):
-            get_local_repo_version("",filename)
+    for path in os.listdir("."):
+        print(path)
+        if os.path.isdir(path):
+            get_local_repo_version("",path)
 
 def get_local_repo_version(fname = "", path = "."):    
 
