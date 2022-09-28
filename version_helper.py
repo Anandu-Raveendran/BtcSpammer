@@ -5,7 +5,8 @@ def run_in_all_dir():
     
     for filename in os.listdir("."):
         print(filename)
-        get_local_repo_version("",filename)
+        if os.path.isdir(filename):
+            get_local_repo_version("",filename)
 
 def get_local_repo_version(fname = "", path = "."):    
 
