@@ -3,7 +3,8 @@ from datetime import datetime
 import logging
 
 """
-Set below flag to True to enable debug logs
+Set below flag to True to enable debug logs.
+It will save logs in version_helper.log in the dir this script is run from.
 """
 ENABLE_DEBUG_LOGS = False
 
