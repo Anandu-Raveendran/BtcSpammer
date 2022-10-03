@@ -1,10 +1,12 @@
 import os
+import subprocess
+from subprocess import Popen
 from datetime import datetime
 import logging
+from subprocess import Popen, PIPE, STDOUT
 
 """
-Set below flag to True to enable debug logs.
-It will save logs in version_helper.log in the dir this script is run from.
+Set below flag to True to enable debug logs
 """
 ENABLE_DEBUG_LOGS = False
 
@@ -20,7 +22,7 @@ if(ENABLE_DEBUG_LOGS):
 Usage: python-c "import version_helper; version_helper.run_in_all_dir()
 
 Call this from the parent dir.
-It traverses the immediate sub dirs and executes get_local_repo_version()
+It traverses the immediate sub dirs and executes get_local_repo_version_with_file()
 
 """
 def run_in_all_dir():
@@ -29,21 +31,72 @@ def run_in_all_dir():
     for path in os.listdir("."):
         logging.debug('changing dir to:' + path)
         if os.path.isdir(path):
-            get_local_repo_version("",path)
+            get_local_repo_version_with_file("",path)
         else : 
-            logging.debug(path + ' is not a dir.')
+            logging.debug(path + ' is not a dir. Skipping...')
+            
 
 """
 Usage: python-c "import version_helper; version_helper.get_local_repo_version()"
 
-Call this in the dir to get the git changes.
-it saves to a new file named YYYY_MM_DD_HH_MM_test_software_version.txt
+Call this in the curr dir to get the git changes.
 
 Throws exception in case of error.
 """
 
-def get_local_repo_version(fname = "", path = "."):    
-    logging.debug('get_local_repo_version called with fname: '+ fname + " in path:" + path)
+def get_local_repo_version(fname = ""):    
+    logging.debug('get_local_repo_version called with fname: '+ fname)
+  
+    proc = Popen("git reflog -1", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    proc.wait()
+    std_output1 = proc.stdout.read().decode()
+    std_error1 = proc.stderr.read().decode()
+    rc1 = proc.returncode
+
+    if(rc1 != 0):
+        errorstr = "git reflog error. Error code: " + str(rc1)
+        logging.error(std_error1)
+        raise Exception(errorstr)
+
+
+    proc = Popen(["git", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    proc.wait()
+    std_output2 = proc.stdout.read().decode()
+    std_error2 = proc.stderr.read().decode()
+    rc2 = proc.returncode
+
+    if(rc2 != 0):
+        errorstr = "git status error: " + str(rc2)
+        logging.error(std_error2)
+        raise Exception(errorstr)
+
+    logging.debug("get_local_repo_version completed.")
+    ret =  [
+            (std_output1, std_error1, rc1),
+            (std_output2, std_error2, rc2)
+           ]
+    return ret
+
+
+"""
+Usage: python-c "import version_helper; version_helper.get_local_repo_version_with_file(<fileName>, <path>)"
+NOTE: both the arguments are default and not compulsory.
+
+It saves the tuple from get_local_repo_version to 
+a new file named YYYY_MM_DD_HH_MM_test_software_version.txt or
+to the file name file provided as argument
+
+Throws exception in case of error.
+"""
+
+def get_local_repo_version_with_file(fname = '', path = "."):
+    
+    if(path != "."):
+        rc = os.chdir(path)
+        if(rc != 0):
+            errorstr = "Can't change to dir: " + path + ". Error code: " + str(rc)
+            logging.error(errorstr)
+            raise Exception(errorstr)
 
     if fname:
         out_file_name = fname
@@ -52,68 +105,22 @@ def get_local_repo_version(fname = "", path = "."):
         out_file_name = dateTimeObj.strftime("%Y_%m_%d_%H_%M")
         out_file_name += "_test_software_version.txt"
 
-    if(path != "."):
-        rc = os.chdir(path)
-        if(rc != 0):
-            errorstr = "Can't change to dir: " + path + ". Error code: " + str(rc)
-            logging.error(errorstr)
-            raise Exception(errorstr)
-  
-    cmd = 'echo std_out:  > '+out_file_name
-    rc = os.system(cmd)
-    if(rc != 0):
-        errorstr = "echo std_out > file error " + str(rc)
-        logging.error(errorstr)
-        raise Exception(errorstr)
+    ret_list = get_local_repo_version(fname)
 
-    cmd = 'git reflog -1 >> '+out_file_name
-    rc = os.system(cmd)
-    if(rc != 0):
-        errorstr = "git reflog error. Error code: " + str(rc)
-        logging.error(errorstr)
-        raise Exception(errorstr)
+    logging.debug("Returned tuple " + str(ret_list))
 
+    f = open(out_file_name, "a")
+    cmd = "STD_OUT: " + str(ret_list[0][0]) + "\n"      \
+            + str(ret_list[1][0]) + "\n"                \
+                                                        \
+            +"STD_ERR: " + str(ret_list[0][1]) + "\n"   \
+            + str(ret_list[1][1]) + "\n"                \
+                                                        \
+            +"RC: " + str(ret_list[0][2]) + "\n"        \
+            + str(ret_list[1][2]) + "\n"
 
-    cmd = 'git status >> '+out_file_name
-    rc = os.system(cmd)
-    if(rc != 0):
-        errorstr = "git status error. Error code: " + str(rc)
-        logging.error(errorstr)
-        raise Exception(errorstr)
+    logging.debug("Writing " +cmd+ " to file: " + out_file_name)
 
-    cmd = 'echo std_err:  >> '+out_file_name
-    rc = os.system(cmd)
-    if(rc != 0):
-        errorstr = "echo std_out > file error " + str(rc)
-        logging.error(errorstr)
-        raise Exception(errorstr)
-
-
-    cmd = "echo rc: "+ str(rc) +" >> "+out_file_name
-    rc = os.system(cmd)
-    if(rc != 0):
-        errorstr = "echo std_out rc > file error " + str(rc)
-        logging.error(errorstr)
-        raise Exception(errorstr)
+    f.write(cmd)
+    f.close()
     
-    logging.debug("get_local_repo_version completed. wrote to " + out_file_name)
-
-
-"""
-Usage: python-c "import version_helper; version_helper.get_local_repo_version_with_file(fileName)"
-
-Call this in the dir to get the git changes.
-It saves data to the fileName file provided as argument
-
-Throws exception in case of error.
-"""
-
-def get_local_repo_version_with_file(fname = ''):
-    logging.debug('get_local_repo_version_with_file called with fname:' + fname)
-
-    if fname:
-        get_local_repo_version(fname)
-    else:
-        print("Usage: get_local_repo_version_with_file('file_name')\n")
-        raise Exception("Need filename as argument to save to.")
-
