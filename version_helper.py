@@ -3,6 +3,7 @@ import subprocess
 from subprocess import Popen
 from datetime import datetime
 from subprocess import Popen, PIPE, STDOUT
+from typing import NoReturn
 
 """
 Usage: python-c "import version_helper; version_helper.get_local_repo_version()"
@@ -13,7 +14,7 @@ Throws exception in case of error.
 """
 class GitVersionChecker():
    
-    def __run_cmd(self, cmd:str):
+    def __run_cmd(self, cmd:str) -> tuple[str, str, int]:
         with Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True) as proc:
             proc.wait(timeout=60)
             std_output = proc.stdout.read().decode()
@@ -23,7 +24,7 @@ class GitVersionChecker():
             return (std_output, std_error, rc)
     
 
-    def get_local_repo_version(self):      
+    def get_local_repo_version(self) -> list[tuple[str, str, int], tuple[str, str, int], tuple[str, str, int]]:      
 
         ret1 = self.__run_cmd("git reflog -1")
         ret2 = self.__run_cmd("git status")
@@ -45,7 +46,7 @@ class GitVersionChecker():
     Throws exception in case of error.
     """
 
-    def get_local_repo_version_with_file(self, fname:str = "", repo_path:str = ""):
+    def get_local_repo_version_with_file(self, fname:str = "", repo_path:str = "") -> NoReturn:
     
         if(repo_path == ""):
             repo_path = os.path.abspath(os.path.join(__file__ ,"../.."))
