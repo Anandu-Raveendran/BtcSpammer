@@ -20,9 +20,6 @@ class GitVersionChecker():
             std_error = proc.stderr.read().decode()
             rc = proc.returncode
 
-            if(rc != 0):
-                errorstr = "git status error: " + str(rc)
-                raise Exception(errorstr)
             return (std_output, std_error, rc)
     
 
@@ -30,8 +27,9 @@ class GitVersionChecker():
 
         ret1 = self.__run_cmd("git reflog -1")
         ret2 = self.__run_cmd("git status")
+        ret3 = self.__run_cmd("git describe --exact-match")
 
-        ret =  [ ret1, ret2 ]
+        ret =  [ ret1, ret2 , ret3]
         return ret
 
    
@@ -64,14 +62,20 @@ class GitVersionChecker():
 
         ret_list = self.get_local_repo_version()
 
-        cmd = "STD_OUT: " + str(ret_list[0][0]) + "\n"      \
-            + str(ret_list[1][0]) + "\n"                \
-                                                        \
-            +"STD_ERR: " + str(ret_list[0][1]) + "\n"   \
-            + str(ret_list[1][1]) + "\n"                \
-                                                        \
-            +"RC: " + str(ret_list[0][2]) + "\n"        \
-            + str(ret_list[1][2]) + "\n"
+        cmd = "Rev information\n"                        \
+            + "STD_OUT: [" + str(ret_list[0][0]) + "]\n"   \
+            + "STD_ERR: [" + str(ret_list[0][1]) + "]\n"   \
+            + "RC: [" + str(ret_list[0][2]) + "]\n"        \
+                                                         \
+            + "\nModification check\n"                       \
+            + "STD_OUT: [" + str(ret_list[1][0]) + "]\n"                 \
+            + "STD_ERR: [" + str(ret_list[1][1]) + "]\n"                 \
+            + "RC: [" + str(ret_list[1][2]) + "]\n"                      \
+                                                                       \
+            + "\nRelease check\n"                       \
+            + "STD_OUT: [" + str(ret_list[2][0]) + "]\n"                 \
+            + "STD_ERR: [" + str(ret_list[2][1]) + "]\n"                 \
+            + "RC: [" + str(ret_list[2][2]) + "]\n"
 
         with open(out_file_name, "a") as f:
             f.write(cmd)
