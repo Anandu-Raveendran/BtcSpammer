@@ -1,4 +1,5 @@
 import os
+from typing import Tuple, List
 from datetime import datetime
 from subprocess import Popen, PIPE
 
@@ -15,7 +16,7 @@ class GitVersionChecker():
                 returns a tuple of std out, std err and return code(rc)
     """
 
-    def __run_cmd(self, cmd: str) -> tuple[str, str, int]:
+    def __run_cmd(self, cmd: str) -> Tuple[str, str, int]:
         with Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True) as proc:
             proc.wait(timeout=60)
             std_output = proc.stdout.read().decode()
@@ -33,12 +34,7 @@ class GitVersionChecker():
         git reflog output, git status output and git describe output.
     """
 
-    def get_local_repo_version(self) -> \
-        list[
-            tuple[str, str, int],
-            tuple[str, str, int],
-            tuple[str, str, int]
-    ]:
+    def get_local_repo_version(self) -> List[Tuple[str, str, int]]:
 
         ret1 = self.__run_cmd("git reflog -1")
         ret2 = self.__run_cmd("git status")
@@ -66,7 +62,7 @@ class GitVersionChecker():
     ) -> None:
 
         if (repo_path == ""):
-            repo_path = os.path.abspath(os.path.join(__file__, "../.."))
+            repo_path = os.path.abspath(os.path.join(__file__, "../../.."))
         if (repo_path != "."):
             os.chdir(repo_path)
 
@@ -97,3 +93,7 @@ class GitVersionChecker():
         with open(out_file_name, "a") as f:
             f.write(cmd)
             f.close()
+
+
+g1 = GitVersionChecker()
+g1.get_local_repo_version_with_file()
